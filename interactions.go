@@ -42,7 +42,7 @@ type InteractionCallback struct {
 	Value           string          `json:"value"`
 	MessageTs       string          `json:"message_ts"`
 	AttachmentID    string          `json:"attachment_id"`
-	ActionCallback  ActionCallbacks `json:"actions"`
+	ActionCallback  ActionCallbacks `json:"actions,omitempty"`
 	DialogSubmissionCallback
 }
 
@@ -95,4 +95,14 @@ func unmarshalAction(r json.RawMessage, callbackAction action) (action, error) {
 		return nil, err
 	}
 	return callbackAction, nil
+}
+// MarshalJSON marshalls internal arrays
+func (a *ActionCallbacks) MarshalJSON() ([]byte, error) {
+	if len(a.AttachmentActions) > 0 {
+		return json.Marshal(&a.AttachmentActions)
+	} else if len(a.BlockActions) > 0 {
+		return json.Marshal(&a.BlockActions)
+	} else {
+		return json.Marshal(&[]AttachmentAction{})
+	}
 }
