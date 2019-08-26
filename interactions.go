@@ -76,14 +76,13 @@ func (a *ActionCallbacks) UnmarshalJSON(data []byte) error {
 			}
 
 			a.BlockActions = append(a.BlockActions, action.(*BlockAction))
-			return nil
+		} else {
+			action, err := unmarshalAction(r, &AttachmentAction{})
+			if err != nil {
+				return err
+			}
+			a.AttachmentActions = append(a.AttachmentActions, action.(*AttachmentAction))
 		}
-
-		action, err := unmarshalAction(r, &AttachmentAction{})
-		if err != nil {
-			return err
-		}
-		a.AttachmentActions = append(a.AttachmentActions, action.(*AttachmentAction))
 	}
 
 	return nil
@@ -98,7 +97,9 @@ func unmarshalAction(r json.RawMessage, callbackAction action) (action, error) {
 }
 // MarshalJSON marshalls internal arrays
 func (a *ActionCallbacks) MarshalJSON() ([]byte, error) {
-	if len(a.AttachmentActions) > 0 {
+	if a == nil {
+		return []byte(""), nil
+	} else if len(a.AttachmentActions) > 0 {
 		return json.Marshal(&a.AttachmentActions)
 	} else if len(a.BlockActions) > 0 {
 		return json.Marshal(&a.BlockActions)
