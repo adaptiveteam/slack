@@ -98,6 +98,13 @@ type Msg struct {
 	Blocks Blocks `json:"blocks,omitempty"`
 }
 
+const (
+	// ResponseTypeInChannel in channel response for slash commands.
+	ResponseTypeInChannel = "in_channel"
+	// ResponseTypeEphemeral ephemeral response for slash commands.
+	ResponseTypeEphemeral = "ephemeral"
+)
+
 // Icon is used for bot messages
 type Icon struct {
 	IconURL   string `json:"icon_url,omitempty"`
