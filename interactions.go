@@ -9,11 +9,11 @@ import (
 type InteractionType string
 
 // ActionType type represents the type of action (attachment, block, etc.)
-type actionType string
+type ActionType string
 
 // action is an interface that should be implemented by all callback action types
 type action interface {
-	actionType() actionType
+	actionType() ActionType
 }
 
 // Types of interactions that can be received.
@@ -135,14 +135,13 @@ func (a *ActionCallbacks) UnmarshalJSON(data []byte) error {
 			}
 
 			a.BlockActions = append(a.BlockActions, action.(*BlockAction))
-			return nil
+		} else {
+			action, err := unmarshalAction(r, &AttachmentAction{})
+			if err != nil {
+				return err
+			}
+			a.AttachmentActions = append(a.AttachmentActions, action.(*AttachmentAction))
 		}
-
-		action, err := unmarshalAction(r, &AttachmentAction{})
-		if err != nil {
-			return err
-		}
-		a.AttachmentActions = append(a.AttachmentActions, action.(*AttachmentAction))
 	}
 
 	return nil
