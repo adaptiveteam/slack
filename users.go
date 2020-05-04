@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -44,14 +45,14 @@ type UserProfile struct {
 // UserProfileCustomFields represents user profile's custom fields.
 // Slack API's response data type is inconsistent so we use the struct.
 // For detail, please see below.
-// https://github.com/nlopes/slack/pull/298#discussion_r185159233
+// https://github.com/slack-go/slack/pull/298#discussion_r185159233
 type UserProfileCustomFields struct {
 	fields map[string]UserProfileCustomField
 }
 
 // UnmarshalJSON is the implementation of the json.Unmarshaler interface.
 func (fields *UserProfileCustomFields) UnmarshalJSON(b []byte) error {
-	// https://github.com/nlopes/slack/pull/298#discussion_r185159233
+	// https://github.com/slack-go/slack/pull/298#discussion_r185159233
 	if string(b) == "[]" {
 		return nil
 	}
@@ -184,6 +185,7 @@ type TeamIdentity struct {
 type userResponseFull struct {
 	Members []User `json:"members,omitempty"`
 	User    `json:"user,omitempty"`
+	Users   []User `json:"users,omitempty"`
 	UserPresence
 	SlackResponse
 	Metadata ResponseMetadata `json:"response_metadata"`
@@ -250,6 +252,26 @@ func (api *Client) GetUserInfoContext(ctx context.Context, user string) (*User, 
 		return nil, err
 	}
 	return &response.User, nil
+}
+
+// GetUsersInfo will retrieve the complete multi-users information
+func (api *Client) GetUsersInfo(users ...string) (*[]User, error) {
+	return api.GetUsersInfoContext(context.Background(), users...)
+}
+
+// GetUsersInfoContext will retrieve the complete multi-users information with a custom context
+func (api *Client) GetUsersInfoContext(ctx context.Context, users ...string) (*[]User, error) {
+	values := url.Values{
+		"token":          {api.token},
+		"users":          {strings.Join(users, ",")},
+		"include_locale": {strconv.FormatBool(true)},
+	}
+
+	response, err := api.userRequest(ctx, "users.info", values)
+	if err != nil {
+		return nil, err
+	}
+	return &response.Users, nil
 }
 
 // GetUsersOption options for the GetUsers method call.

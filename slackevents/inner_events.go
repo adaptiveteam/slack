@@ -2,7 +2,11 @@
 
 package slackevents
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/slack-go/slack"
+)
 
 // EventsAPIInnerEvent the inner event of a EventsAPI event_callback Event.
 type EventsAPIInnerEvent struct {
@@ -19,6 +23,10 @@ type AppMentionEvent struct {
 	ThreadTimeStamp string      `json:"thread_ts"`
 	Channel         string      `json:"channel"`
 	EventTimeStamp  json.Number `json:"event_ts"`
+
+	// When Message comes from a channel that is shared between workspaces
+	UserTeam   string `json:"user_team,omitempty"`
+	SourceTeam string `json:"source_team,omitempty"`
 }
 
 // AppHomeOpenedEvent Your Slack app home was opened.
@@ -27,6 +35,8 @@ type AppHomeOpenedEvent struct {
 	User           string      `json:"user"`
 	Channel        string      `json:"channel"`
 	EventTimeStamp json.Number `json:"event_ts"`
+	Tab            string      `json:"tab"`
+	View           slack.View  `json:"view"`
 }
 
 // AppUninstalledEvent Your Slack app was uninstalled.
@@ -79,6 +89,10 @@ type MessageEvent struct {
 	ChannelType     string      `json:"channel_type"`
 	EventTimeStamp  json.Number `json:"event_ts"`
 
+	// When Message comes from a channel that is shared between workspaces
+	UserTeam   string `json:"user_team,omitempty"`
+	SourceTeam string `json:"source_team,omitempty"`
+
 	// Edited Message
 	Message         *MessageEvent `json:"message,omitempty"`
 	PreviousMessage *MessageEvent `json:"previous_message,omitempty"`
@@ -114,6 +128,21 @@ type pinEvent struct {
 	EventTimestamp string `json:"event_ts"`
 	HasPins        bool   `json:"has_pins,omitempty"`
 }
+
+type reactionEvent struct {
+	Type           string `json:"type"`
+	User           string `json:"user"`
+	Reaction       string `json:"reaction"`
+	ItemUser       string `json:"item_user"`
+	Item           Item   `json:"item"`
+	EventTimestamp string `json:"event_ts"`
+}
+
+// ReactionAddedEvent An reaction was added to a message - https://api.slack.com/events/reaction_added
+type ReactionAddedEvent reactionEvent
+
+// ReactionRemovedEvent An reaction was removed from a message - https://api.slack.com/events/reaction_removed
+type ReactionRemovedEvent reactionEvent
 
 // PinAddedEvent An item was pinned to a channel - https://api.slack.com/events/pin_added
 type PinAddedEvent pinEvent
@@ -254,6 +283,10 @@ const (
 	PinAdded = "pin_added"
 	// PinRemoved An item was unpinned from a channel
 	PinRemoved = "pin_removed"
+	// ReactionAdded An reaction was added to a message
+	ReactionAdded = "reaction_added"
+	// ReactionRemoved An reaction was removed from a message
+	ReactionRemoved = "reaction_removed"
 	// TokensRevoked APP's API tokes are revoked
 	TokensRevoked = "tokens_revoked"
 )
@@ -272,5 +305,7 @@ var EventsAPIInnerEventMapping = map[string]interface{}{
 	MemberJoinedChannel:   MemberJoinedChannelEvent{},
 	PinAdded:              PinAddedEvent{},
 	PinRemoved:            PinRemovedEvent{},
+	ReactionAdded:         ReactionAddedEvent{},
+	ReactionRemoved:       ReactionRemovedEvent{},
 	TokensRevoked:         TokensRevokedEvent{},
 }
